@@ -1,6 +1,7 @@
 import { Server } from 'http';
 import mongoose from 'mongoose';
 import app from './app';
+import logger from './app/config/logger';
 import {
   DatabaseAuthError,
   DatabaseConnectionError,
@@ -73,19 +74,19 @@ const connectDatabase = async (): Promise<void> => {
   for (let retries = 0; retries < maxRetries; retries++) {
     try {
       await mongoose.connect(config.database_url, mongoOptions);
-      console.info('✅ Database connected successfully');
+      logger.info('✅ Database connected successfully');
       return;
     } catch (error: unknown) {
       lastError = classifyDatabaseError(error, retries);
       const delay = Math.min(2000 * Math.pow(2, retries), 10000);
 
-      console.error(
+      logger.error(
         `❌ Database connection failed (attempt ${retries + 1}/${maxRetries}):`,
         lastError.message
       );
 
       if (retries < maxRetries - 1) {
-        console.info(`Retrying connection in ${delay}ms...`);
+        logger.info(`Retrying connection in ${delay}ms...`);
         await new Promise<void>(resolve => setTimeout(resolve, delay));
       }
     }
@@ -106,22 +107,22 @@ const initiateShutdown = (exitCode: number): void => {
   }
 
   setImmediate(() => {
-    console.info(`Process exiting with code: ${exitCode}`);
+    logger.info(`Process exiting with code: ${exitCode}`);
 
     if (exitCode !== 0) {
-      console.error('Application terminated with errors');
+      logger.error('Application terminated with errors');
     }
   });
 };
 
 const gracefulShutdown = async (signal: string): Promise<void> => {
   if (isShuttingDown) {
-    console.info(`Shutdown already in progress, ignoring ${signal}`);
+    logger.info(`Shutdown already in progress, ignoring ${signal}`);
     return;
   }
 
   isShuttingDown = true;
-  console.info(`\n${signal} received, initiating graceful shutdown...`);
+  logger.info(`\n${signal} received, initiating graceful shutdown...`);
 
   try {
     const shutdownPromises: Array<Promise<void>> = [];
@@ -145,7 +146,7 @@ const gracefulShutdown = async (signal: string): Promise<void> => {
                 )
               );
             } else {
-              console.info('✅ HTTP server closed gracefully');
+              logger.info('✅ HTTP server closed gracefully');
               resolve();
             }
           });
@@ -160,7 +161,7 @@ const gracefulShutdown = async (signal: string): Promise<void> => {
         mongoose.connection
           .close(false)
           .then(() => {
-            console.info('✅ Database connection closed gracefully');
+            logger.info('✅ Database connection closed gracefully');
           })
           .catch((err: Error) => {
             throw new ShutdownError(
@@ -172,7 +173,7 @@ const gracefulShutdown = async (signal: string): Promise<void> => {
     }
 
     if (shutdownPromises.length === 0) {
-      console.info('No active connections to close');
+      logger.info('No active connections to close');
       return;
     }
 
@@ -192,7 +193,7 @@ const gracefulShutdown = async (signal: string): Promise<void> => {
           );
         }
 
-        console.info('✅ All shutdown operations completed successfully');
+        logger.info('✅ All shutdown operations completed successfully');
       }),
       shutdownTimer,
     ]);
@@ -202,10 +203,10 @@ const gracefulShutdown = async (signal: string): Promise<void> => {
       shutdownTimeout = undefined;
     }
 
-    console.info('🎯 Graceful shutdown completed');
+    logger.info('🎯 Graceful shutdown completed');
     initiateShutdown(0);
   } catch (error: unknown) {
-    console.error(
+    logger.error(
       '❌ Error during shutdown:',
       error instanceof Error ? error.message : String(error)
     );
@@ -224,19 +225,19 @@ const main = async (): Promise<void> => {
     await connectDatabase();
 
     mongoose.connection.on('connected', () => {
-      console.info('🔗 Mongoose connected to database cluster');
+      logger.info('🔗 Mongoose connected to database cluster');
     });
 
     mongoose.connection.on('disconnected', () => {
-      console.info('🔌 Mongoose disconnected from database');
+      logger.info('🔌 Mongoose disconnected from database');
       if (!isShuttingDown) {
-        console.error('🚨 Unexpected database disconnection detected');
+        logger.error('🚨 Unexpected database disconnection detected');
         void gracefulShutdown('UNEXPECTED_DISCONNECTION');
       }
     });
 
     mongoose.connection.on('error', (err: Error) => {
-      console.error('💥 Mongoose connection error:', err);
+      logger.error('💥 Mongoose connection error:', err);
       if (!isShuttingDown) {
         void gracefulShutdown('DATABASE_ERROR');
       }
@@ -244,9 +245,9 @@ const main = async (): Promise<void> => {
 
     const serverStartPromise = new Promise<void>((resolve, reject) => {
       server = app.listen(config.port, () => {
-        console.info(`🚀 Server running on port ${config.port}`);
-        console.info(`📊 Environment: ${config.node_env ?? 'development'}`);
-        console.info(
+        logger.info(`🚀 Server running on port ${config.port}`);
+        logger.info(`📊 Environment: ${config.node_env ?? 'development'}`);
+        logger.info(
           `⏰ Server start timeout: ${config.server_start_timeout}ms`
         );
         resolve();
@@ -271,18 +272,18 @@ const main = async (): Promise<void> => {
     ]);
 
     server.on('error', (error: Error) => {
-      console.error('❌ Server runtime error:', error);
+      logger.error('❌ Server runtime error:', error);
       if (!isShuttingDown) {
         void gracefulShutdown('SERVER_ERROR');
       }
     });
 
-    console.info('✅ Application bootstrap sequence completed successfully');
+    logger.info('✅ Application bootstrap sequence completed successfully');
   } catch (error: unknown) {
-    console.error('💥 Critical failure during application bootstrap:', error);
+    logger.error('💥 Critical failure during application bootstrap:', error);
 
     if (error instanceof DatabaseConnectionError) {
-      console.error(
+      logger.error(
         '🔧 Database connectivity issue - check configuration and network'
       );
     }
@@ -292,19 +293,19 @@ const main = async (): Promise<void> => {
 };
 
 process.on('SIGTERM', () => {
-  console.info('📡 SIGTERM received from orchestrator');
+  logger.info('📡 SIGTERM received from orchestrator');
   void gracefulShutdown('SIGTERM');
 });
 
 process.on('SIGINT', () => {
-  console.info('⌨️  SIGINT received from terminal');
+  logger.info('⌨️  SIGINT received from terminal');
   void gracefulShutdown('SIGINT');
 });
 
 process.on(
   'unhandledRejection',
   (error: unknown, promise: Promise<unknown>) => {
-    console.error(
+    logger.error(
       '🚨 Unhandled Promise Rejection at:',
       promise,
       'reason:',
@@ -315,7 +316,7 @@ process.on(
 );
 
 process.on('uncaughtException', (error: Error, origin: string) => {
-  console.error('🚨 Uncaught Exception:', error, 'origin:', origin);
+  logger.error('🚨 Uncaught Exception:', error, 'origin:', origin);
   void gracefulShutdown('UNCAUGHT_EXCEPTION');
 });
 

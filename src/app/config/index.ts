@@ -14,4 +14,10 @@ export default {
   server_shutdown_timeout: parseInt(
     process.env['SERVER_SHUTDOWN_TIMEOUT'] ?? '10000'
   ),
+  log_level: process.env['LOG_LEVEL'] as string,
+  log_max_size: parseInt(process.env['LOG_MAX_SIZE'] ?? '20'),
+  log_max_file_duration: parseInt(
+    process.env['LOG_MAX_FILE_DURATION'] ?? '15d'
+  ),
+  log_error_retention: parseInt(process.env['LOG_ERROR_RETENTION'] ?? '30d'),
 };
