@@ -7,6 +7,7 @@ import logger from './app/config/logger';
 import config from './app/config';
 import router from './app/routes';
 import notFound from './app/middleware/notFound';
+import globalErrorHandler from './app/middleware/globalErrorHandler';
 
 const app: Application = express();
 
@@ -58,5 +59,6 @@ app.get('/health', (_req: Request, res: Response) => {
 app.use('/api/v1/server', router);
 
 app.use(notFound);
+app.use(globalErrorHandler);
 
 export default app;

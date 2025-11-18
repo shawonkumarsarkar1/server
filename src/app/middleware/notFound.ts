@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextFunction, Request, Response } from 'express';
-import formatTimestamp12Hour from '../utils/formatTimestamp12Hour';
 
 interface INotFoundResponse {
   status: 'Error';
@@ -22,7 +21,7 @@ const notFound = (req: Request, res: Response, _next: NextFunction): void => {
       method: req.method,
     },
     suggestion: 'Check the api endpoint and try again',
-    timestamp: formatTimestamp12Hour(),
+    timestamp: new Date().toISOString(),
   };
 
   res.status(404).json(response);
