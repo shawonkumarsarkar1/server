@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import logger from './app/config/logger';
 import config from './app/config';
+import { appRoutes } from './app/routes';
 
 const app: Application = express();
 
@@ -52,5 +53,7 @@ app.get('/health', (_req: Request, res: Response) => {
     memory: process.memoryUsage(),
   });
 });
+
+app.use('/api/v1/server', appRoutes);
 
 export default app;
