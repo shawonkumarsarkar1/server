@@ -5,7 +5,8 @@ import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import logger from './app/config/logger';
 import config from './app/config';
-import { appRoutes } from './app/routes';
+import router from './app/routes';
+import notFound from './app/middleware/notFound';
 
 const app: Application = express();
 
@@ -54,6 +55,8 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
-app.use('/api/v1/server', appRoutes);
+app.use('/api/v1/server', router);
+
+app.use(notFound);
 
 export default app;

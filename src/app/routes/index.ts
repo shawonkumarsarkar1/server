@@ -12,4 +12,4 @@ const routeModules = [
 
 routeModules.forEach(({ path, route }) => router.use(path, route));
 
-export const appRoutes = router;
+export default router;
