@@ -4,8 +4,8 @@ import { NextFunction, Request, Response } from 'express';
 interface INotFoundResponse {
   status: 'Error';
   message: string;
-  error: {
-    path: string;
+  errors: {
+    url: string;
     method: string;
   };
   suggestion?: string;
@@ -16,8 +16,8 @@ const notFound = (req: Request, res: Response, _next: NextFunction): void => {
   const response: INotFoundResponse = {
     status: 'Error',
     message: `The requested resource '${req.originalUrl}' was not found on this server.`,
-    error: {
-      path: req.originalUrl,
+    errors: {
+      url: req.originalUrl,
       method: req.method,
     },
     suggestion: 'Check the api endpoint and try again',

@@ -7,7 +7,7 @@ import {
   DatabaseConnectionError,
   DatabaseTimeoutError,
   ShutdownError,
-} from './app/types/error.type';
+} from './app/interface/error';
 import config from './app/config';
 
 let server: Server;

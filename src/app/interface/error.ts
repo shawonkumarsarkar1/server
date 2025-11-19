@@ -35,3 +35,14 @@ export class ShutdownError extends Error {
     this.signal = signal;
   }
 }
+
+export interface IErrorSources {
+  path: string;
+  message: string;
+}
+
+export interface IErrorResponse {
+  statusCode: number;
+  message: string;
+  errorSource: IErrorSources;
+}
