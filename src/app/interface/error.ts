@@ -37,7 +37,8 @@ export class ShutdownError extends Error {
 }
 
 export interface IErrorSources {
-  path: string;
+  field: string | undefined;
+  value: string | undefined;
   message: string;
 }
 
