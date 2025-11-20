@@ -6,16 +6,16 @@ interface DuplicateKeyError extends Error {
 
 const handleDuplicateKeyError = (err: DuplicateKeyError): IErrorResponse => {
   const statusCode = 400;
-  const errorField = Object.keys(err?.keyValue ?? {})[0];
+  const errorPath = Object.keys(err?.keyValue ?? {})[0];
   const errorFieldValue =
-    err?.keyValue && errorField !== undefined
-      ? err.keyValue[errorField as keyof typeof err.keyValue]
+    err?.keyValue && errorPath !== undefined
+      ? err.keyValue[errorPath as keyof typeof err.keyValue]
       : '';
-  const message = `Duplicate Key Error: A record with this field: '${errorField}' and value: '${errorFieldValue}' already exists.`;
+  const message = `Duplicate Key Error: A record with this field: '${errorPath}' and value: '${errorFieldValue}' already exists.`;
   const errorSource = {
-    field: errorField,
-    value: errorFieldValue,
-    message: `The ${errorField} '${errorFieldValue}' is already exists. Please try a different ${errorField}.`,
+    path: errorPath ?? '',
+    value: errorFieldValue ?? '',
+    message: `The ${errorPath} '${errorFieldValue}' is already exists. Please try a different ${errorPath}.`,
   };
 
   return {
