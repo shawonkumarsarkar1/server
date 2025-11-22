@@ -3,11 +3,11 @@ import mongoose from 'mongoose';
 import app from './app';
 import logger from './app/config/logger';
 import {
-  DatabaseAuthError,
-  DatabaseConnectionError,
-  DatabaseTimeoutError,
+  IDatabaseAuthError,
+  IDatabaseConnectionError,
+  IDatabaseTimeoutError,
   ShutdownError,
-} from './app/interface/error';
+} from './app/utils/error';
 import config from './app/config';
 
 let server: Server;
@@ -29,20 +29,20 @@ const mongoOptions: mongoose.ConnectOptions = {
 const classifyDatabaseError = (
   error: unknown,
   retries: number
-): DatabaseConnectionError => {
+): IDatabaseConnectionError => {
   if (error instanceof mongoose.Error) {
     if (
       error.name === 'MongoServerSelectionError' ||
       error.name === 'MongoTimeoutError'
     ) {
-      return new DatabaseTimeoutError(
+      return new IDatabaseTimeoutError(
         `Database timeout after ${retries + 1} attempts: ${error.message}`,
         retries
       );
     }
 
     if (error.name === 'MongoNetworkError') {
-      return new DatabaseConnectionError(
+      return new IDatabaseConnectionError(
         `Network error connecting to database: ${error.message}`,
         'DATABASE_NETWORK_ERROR',
         retries
@@ -54,13 +54,13 @@ const classifyDatabaseError = (
       'code' in error &&
       error.code === 18
     ) {
-      return new DatabaseAuthError(
+      return new IDatabaseAuthError(
         `Database authentication failed: ${error.message}`
       );
     }
   }
 
-  return new DatabaseConnectionError(
+  return new IDatabaseConnectionError(
     `Database connection failed: ${error instanceof Error ? error.message : String(error)}`,
     'DATABASE_CONNECTION_ERROR',
     retries
@@ -69,7 +69,7 @@ const classifyDatabaseError = (
 
 const connectDatabase = async (): Promise<void> => {
   const maxRetries = 5;
-  let lastError: DatabaseConnectionError | undefined = undefined;
+  let lastError: IDatabaseConnectionError | undefined = undefined;
 
   for (let retries = 0; retries < maxRetries; retries++) {
     try {
@@ -94,7 +94,7 @@ const connectDatabase = async (): Promise<void> => {
 
   throw (
     lastError ??
-    new DatabaseConnectionError(
+    new IDatabaseConnectionError(
       'Unknown error during database connection attempts'
     )
   );
@@ -282,7 +282,7 @@ const main = async (): Promise<void> => {
   } catch (error: unknown) {
     logger.error('💥 Critical failure during application bootstrap:', error);
 
-    if (error instanceof DatabaseConnectionError) {
+    if (error instanceof IDatabaseConnectionError) {
       logger.error(
         '🔧 Database connectivity issue - check configuration and network'
       );
