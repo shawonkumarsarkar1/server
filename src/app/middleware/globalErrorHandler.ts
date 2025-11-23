@@ -8,6 +8,7 @@ import handleValidationError from '../error/handleValidationError';
 import mongoose from 'mongoose';
 import handleCastError from '../error/handleCastError';
 import handleDuplicateKeyError from '../error/handleDuplicateKeyError';
+import AppError from '../error/appError';
 
 const globalErrorHandler: ErrorRequestHandler = (
   error: Error & { code?: number },
@@ -44,6 +45,23 @@ const globalErrorHandler: ErrorRequestHandler = (
     statusCode = formattedError.statusCode;
     message = formattedError.message;
     errorSources = formattedError.errorSources;
+  } else if (error instanceof AppError) {
+    statusCode = error.statusCode;
+    message = error.message;
+    errorSources = [
+      {
+        path: '',
+        message: error.message,
+      },
+    ];
+  } else if (error instanceof Error) {
+    message = error.message;
+    errorSources = [
+      {
+        path: '',
+        message: error.message,
+      },
+    ];
   }
 
   return res.status(statusCode).json({
