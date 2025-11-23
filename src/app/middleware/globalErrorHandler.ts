@@ -7,9 +7,10 @@ import { IErrorSources } from '../interface/error';
 import handleValidationError from '../error/handleValidationError';
 import mongoose from 'mongoose';
 import handleCastError from '../error/handleCastError';
+import handleDuplicateKeyError from '../error/handleDuplicateKeyError';
 
 const globalErrorHandler: ErrorRequestHandler = (
-  error: (Error & mongoose.Error.ValidationError) | mongoose.Error.CastError,
+  error: Error & { code?: number },
   req,
   res,
   _next
@@ -28,13 +29,18 @@ const globalErrorHandler: ErrorRequestHandler = (
     statusCode = formattedError.statusCode;
     message = formattedError.message;
     errorSources = formattedError.errorSources;
-  } else if (error.name === 'ValidationError') {
+  } else if (error instanceof mongoose.Error.ValidationError) {
     const formattedError = handleValidationError(error);
     statusCode = formattedError.statusCode;
     message = formattedError.message;
     errorSources = formattedError.errorSources;
-  } else if (error.name === 'CastError') {
+  } else if (error instanceof mongoose.Error.CastError) {
     const formattedError = handleCastError(error);
+    statusCode = formattedError.statusCode;
+    message = formattedError.message;
+    errorSources = formattedError.errorSources;
+  } else if (error.code === 11000) {
+    const formattedError = handleDuplicateKeyError(error);
     statusCode = formattedError.statusCode;
     message = formattedError.message;
     errorSources = formattedError.errorSources;
