@@ -4,9 +4,11 @@ import { ZodError } from 'zod';
 import config from '../config';
 import handleZodError from '../error/handleZodError';
 import { IErrorSources } from '../interface/error';
+import handleValidationError from '../error/handleValidationError';
+import mongoose from 'mongoose';
 
 const globalErrorHandler: ErrorRequestHandler = (
-  error: Error,
+  error: Error & mongoose.Error.ValidationError,
   req,
   res,
   _next
@@ -22,6 +24,11 @@ const globalErrorHandler: ErrorRequestHandler = (
 
   if (error instanceof ZodError) {
     const formattedError = handleZodError(error);
+    statusCode = formattedError.statusCode;
+    message = formattedError.message;
+    errorSources = formattedError.errorSources;
+  } else if (error.name === 'ValidationError') {
+    const formattedError = handleValidationError(error);
     statusCode = formattedError.statusCode;
     message = formattedError.message;
     errorSources = formattedError.errorSources;
