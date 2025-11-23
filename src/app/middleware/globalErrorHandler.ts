@@ -6,9 +6,10 @@ import handleZodError from '../error/handleZodError';
 import { IErrorSources } from '../interface/error';
 import handleValidationError from '../error/handleValidationError';
 import mongoose from 'mongoose';
+import handleCastError from '../error/handleCastError';
 
 const globalErrorHandler: ErrorRequestHandler = (
-  error: Error & mongoose.Error.ValidationError,
+  error: (Error & mongoose.Error.ValidationError) | mongoose.Error.CastError,
   req,
   res,
   _next
@@ -32,6 +33,11 @@ const globalErrorHandler: ErrorRequestHandler = (
     statusCode = formattedError.statusCode;
     message = formattedError.message;
     errorSources = formattedError.errorSources;
+  } else if (error.name === 'CastError') {
+    const formattedError = handleCastError(error);
+    statusCode = formattedError.statusCode;
+    message = formattedError.message;
+    errorSources = formattedError.errorSources;
   }
 
   return res.status(statusCode).json({
@@ -41,7 +47,6 @@ const globalErrorHandler: ErrorRequestHandler = (
       errorSources,
       url: req.originalUrl,
       method: req.method,
-      ...error,
     },
     stack: config.node_env === 'development' ? error?.stack : null,
     timestamp: new Date().toISOString(),

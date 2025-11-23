@@ -9,6 +9,12 @@ const userSchema = new Schema<IUser>(
       trim: true,
       maxLength: [20, 'Name cannot exceed 20 characters'],
     },
+    age: {
+      type: Number,
+      required: [true, 'Age is required'],
+      min: [0, 'Age cannot be negative'],
+      max: [100, 'Age seems unrealistic'],
+    },
     email: {
       type: String,
       required: [true, 'Email is required'],
