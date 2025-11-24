@@ -5,7 +5,8 @@ import { userValidation } from './user.validation';
 
 const router = Router();
 
-router.get('/', userControllers.getAllUser);
+router.get('/', userControllers.getAllUsers);
+router.get('/:id', userControllers.getSingleUser);
 
 router.post(
   '/create',
