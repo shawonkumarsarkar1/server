@@ -5,6 +5,8 @@ import { userValidation } from './user.validation';
 
 const router = Router();
 
+router.get('/', userControllers.getAllUser);
+
 router.post(
   '/create',
   validateRequest(userValidation.userRegistrationValidationSchema),

@@ -8,7 +8,7 @@ import handleValidationError from '../error/handleValidationError';
 import mongoose from 'mongoose';
 import handleCastError from '../error/handleCastError';
 import handleDuplicateKeyError from '../error/handleDuplicateKeyError';
-import AppError from '../error/appError';
+import AppError from '../error/AppError';
 
 const globalErrorHandler: ErrorRequestHandler = (
   error: Error & { code?: number },
@@ -65,7 +65,7 @@ const globalErrorHandler: ErrorRequestHandler = (
   }
 
   return res.status(statusCode).json({
-    status: 'error',
+    success: false,
     message,
     errors: {
       errorSources,

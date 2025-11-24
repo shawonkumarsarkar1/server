@@ -22,7 +22,7 @@ const sendResponse = <T>(res: Response, resData: IResponse<T>): void => {
     meta,
   } = resData;
   const response = {
-    status: 'success',
+    success: true,
     message,
     data,
     meta,
